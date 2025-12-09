@@ -13,37 +13,116 @@ function formatDate(date: Date): string {
     day: 'numeric',
   });
 }
+
+// 検索用データ
+const searchData = posts.map((post) => ({
+  slug: post.slug,
+  title: post.data.title,
+  description: post.data.description || '',
+  date: post.data.date.toISOString(),
+  dateFormatted: formatDate(post.data.date),
+}));
 ---
 
 <BaseLayout title="Home">
   <section>
-    <h1 class="text-2xl font-bold mb-8">記事一覧</h1>
+    <h1 class="text-2xl font-bold mb-6">記事一覧</h1>
 
-    {posts.length === 0 ? (
-      <p class="text-gray-500">まだ記事がありません。</p>
-    ) : (
-      <ul class="space-y-6">
-        {posts.map((post) => (
-          <li class="border-b border-gray-100 pb-6 last:border-0">
-            <a
-              href={`/daily-commit/posts/${post.slug}/`}
-              class="block group"
-            >
-              <time class="text-sm text-gray-500" datetime={post.data.date.toISOString()}>
-                {formatDate(post.data.date)}
-              </time>
-              <h2 class="text-lg font-medium mt-1 group-hover:text-blue-600">
-                {post.data.title}
-              </h2>
-              {post.data.description && (
-                <p class="text-gray-600 text-sm mt-2">
-                  {post.data.description}
-                </p>
-              )}
-            </a>
-          </li>
-        ))}
-      </ul>
-    )}
+    <!-- 検索フォーム -->
+    <div class="mb-8">
+      <div class="relative">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd" />
+          </svg>
+        </div>
+        <input
+          type="text"
+          id="search-input"
+          placeholder="記事を検索..."
+          class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
+      </div>
+      <p id="result-count" class="text-sm text-gray-500 mt-2">
+        全 {posts.length} 件の記事
+      </p>
+    </div>
+
+    <div id="posts-container">
+      {posts.length === 0 ? (
+        <p class="text-gray-500">まだ記事がありません。</p>
+      ) : (
+        <ul id="posts-list" class="space-y-6">
+          {searchData.map((post) => (
+            <li class="border-b border-gray-100 pb-6 last:border-0 post-item" data-title={post.title.toLowerCase()} data-description={post.description.toLowerCase()}>
+              <a
+                href={`/daily-commit/posts/${post.slug}/`}
+                class="block group"
+              >
+                <time class="text-sm text-gray-500" datetime={post.date}>
+                  {post.dateFormatted}
+                </time>
+                <h2 class="text-lg font-medium mt-1 group-hover:text-blue-600">
+                  {post.title}
+                </h2>
+                {post.description && (
+                  <p class="text-gray-600 text-sm mt-2">
+                    {post.description}
+                  </p>
+                )}
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+
+    <p id="no-results" class="text-gray-500 hidden">
+      該当する記事が見つかりませんでした。
+    </p>
   </section>
 </BaseLayout>
+
+<script define:vars={{ totalPosts: posts.length }}>
+  const searchInput = document.getElementById('search-input');
+  const postItems = document.querySelectorAll('.post-item');
+  const resultCount = document.getElementById('result-count');
+  const noResults = document.getElementById('no-results');
+  const postsList = document.getElementById('posts-list');
+
+  searchInput?.addEventListener('input', () => {
+    const query = searchInput.value.toLowerCase().trim();
+    let visibleCount = 0;
+
+    postItems.forEach((item) => {
+      const title = item.getAttribute('data-title') || '';
+      const description = item.getAttribute('data-description') || '';
+      const isMatch = query === '' || title.includes(query) || description.includes(query);
+
+      if (isMatch) {
+        item.style.display = 'block';
+        visibleCount++;
+      } else {
+        item.style.display = 'none';
+      }
+    });
+
+    if (resultCount) {
+      if (query === '') {
+        resultCount.textContent = `全 ${totalPosts} 件の記事`;
+      } else {
+        resultCount.textContent = `${visibleCount} 件の記事が見つかりました`;
+      }
+    }
+
+    if (noResults && postsList) {
+      if (visibleCount === 0 && query !== '') {
+        noResults.classList.remove('hidden');
+        postsList.classList.add('hidden');
+      } else {
+        noResults.classList.add('hidden');
+        postsList.classList.remove('hidden');
+      }
+    }
+  });
+</script>
