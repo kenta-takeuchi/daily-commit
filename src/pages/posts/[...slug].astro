@@ -1,0 +1,47 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts');
+  return posts.map((post) => ({
+    params: { slug: post.slug },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await post.render();
+
+function formatDate(date: Date): string {
+  return date.toLocaleDateString('ja-JP', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}
+---
+
+<BaseLayout title={post.data.title} description={post.data.description}>
+  <article>
+    <header class="mb-8">
+      <time class="text-sm text-gray-500" datetime={post.data.date.toISOString()}>
+        {formatDate(post.data.date)}
+      </time>
+      <h1 class="text-2xl font-bold mt-2">{post.data.title}</h1>
+    </header>
+
+    <div class="prose">
+      <Content />
+    </div>
+
+    <footer class="mt-12 pt-6 border-t border-gray-200">
+      <a
+        href="/daily-commit/"
+        class="text-blue-600 hover:underline text-sm"
+      >
+        ← 記事一覧に戻る
+      </a>
+    </footer>
+  </article>
+</BaseLayout>
