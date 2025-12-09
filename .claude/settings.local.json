@@ -6,7 +6,12 @@
       "Bash(npm create:*)",
       "Bash(rm:*)",
       "Bash(npm install:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git remote add:*)",
+      "Bash(git push:*)",
+      "Bash(gh repo create:*)",
+      "Bash(git remote:*)"
     ]
   }
 }

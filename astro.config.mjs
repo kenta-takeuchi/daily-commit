@@ -3,7 +3,7 @@ import tailwind from '@astrojs/tailwind';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://takeuchikenta.github.io',
+  site: 'https://kenta-takeuchi.github.io',
   base: '/daily-commit',
   integrations: [tailwind()],
   markdown: {
